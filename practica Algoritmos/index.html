@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HojaClara</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ENCABEZADO -->
+    <header class="topbar">
+
+        <div class="logo">
+            <span class="logo-icon">▦</span>
+            <span>HojaClara</span>
+        </div>
+
+        <div class="acciones">
+
+            <button id="btnNuevo" title="Nueva hoja">
+                Nuevo
+            </button>
+
+            <button id="btnLimpiar" title="Limpiar hoja">
+                Limpiar
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- BARRA DE FORMULA -->
+    <section class="barra-formula">
+
+        <div id="celdaSeleccionada" class="nombre-celda">
+            A1
+        </div>
+
+        <div class="fx">
+            fx
+        </div>
+
+        <input
+            type="text"
+            id="barraFormula"
+            placeholder="Escribe un valor o fórmula..."
+            autocomplete="off"
+        >
+
+        <button id="btnAceptar" class="btn-formula">
+            ✓
+        </button>
+
+    </section>
+
+
+    <!-- AREA DE LA HOJA -->
+    <main class="contenedor-hoja">
+
+        <table id="hojaCalculo">
+
+            <thead id="encabezados">
+                <!-- JavaScript genera los encabezados -->
+            </thead>
+
+            <tbody id="cuerpoHoja">
+                <!-- JavaScript genera las celdas -->
+            </tbody>
+
+        </table>
+
+    </main>
+
+
+    <!-- BARRA INFERIOR -->
+    <footer class="barra-inferior">
+
+        <div>
+            Hoja 1
+        </div>
+
+        <div id="estado">
+            Listo
+        </div>
+
+    </footer>
+
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
