@@ -1,25 +1,17 @@
 const NUMERO_FILAS = 30;
 const NUMERO_COLUMNAS = 15;
 
+//Elementos de la pagina 
+
 const encabezados = document.getElementById("encabezados");
 const cuerpoHoja = document.getElementById("cuerpoHoja");
-
 const barraFormula = document.getElementById("barraFormula");
+const celdaSeleccionadaTexto = document.getElementById("celdaSeleccionada");
+const botonAceptar = document.getElementById("btnAceptar");
+const botonNuevo = document.getElementById("btnNuevo");
+const botonLimpiar = document.getElementById("btnLimpiar");
+const estado = document.getElementById("estado");
 
-const celdaSeleccionadaTexto =
-    document.getElementById("celdaSeleccionada");
-
-const botonAceptar =
-    document.getElementById("btnAceptar");
-
-const botonNuevo =
-    document.getElementById("btnNuevo");
-
-const botonLimpiar =
-    document.getElementById("btnLimpiar");
-
-const estado =
-    document.getElementById("estado");
 
 
 
@@ -27,23 +19,44 @@ const datos = {};
 
 let celdaActual = null;
 
-function obtenerNombreColumna(numero) {
+let editorActual = null;
 
+
+
+function obtenerNombreColumna(numero) {
     let nombre = "";
 
     while (numero > 0) {
 
         const residuo = (numero - 1) % 26;
 
-        nombre =
-            String.fromCharCode(65 + residuo) + nombre;
+        nombre = String.fromCharCode(65 + residuo) + nombre;
 
-        numero =
-            Math.floor((numero - 1) / 26);
+        numero = Math.floor((numero - 1) / 26);
     }
 
     return nombre;
 }
+
+
+function convertirValor(valor) {
+    const texto = valor.trim();
+
+    if (texto === "") { 
+        return "";
+    }
+
+
+//comprobamos 
+const numero = Number(texto);
+
+if (!Number.isNaN(numero)) {
+    return numero;
+}
+
+return valor;
+}
+
 
 
 function generarEncabezados() {
@@ -53,12 +66,16 @@ function generarEncabezados() {
     const fila = document.createElement("tr");
 
 
+    // Esquina superior izquierda
 
     const esquina = document.createElement("th");
 
     esquina.textContent = "";
 
     fila.appendChild(esquina);
+
+
+    // Columnas
 
     for (
         let columna = 1;
@@ -68,8 +85,7 @@ function generarEncabezados() {
 
         const th = document.createElement("th");
 
-        th.textContent =
-            obtenerNombreColumna(columna);
+        th.textContent = obtenerNombreColumna(columna);
 
         th.dataset.columna = columna;
 
@@ -80,11 +96,11 @@ function generarEncabezados() {
     encabezados.appendChild(fila);
 }
 
+
+
 function generarCuadricula() {
 
     cuerpoHoja.innerHTML = "";
-
-
 
     for (
         let fila = 1;
@@ -92,12 +108,11 @@ function generarCuadricula() {
         fila++
     ) {
 
-        const nuevaFila =
-            document.createElement("tr");
+        const nuevaFila = document.createElement("tr");
 
+        // Número de fila
 
-        const numeroFila =
-            document.createElement("th");
+        const numeroFila = document.createElement("th");
 
         numeroFila.textContent = fila;
 
@@ -112,20 +127,11 @@ function generarCuadricula() {
             columna++
         ) {
 
-            const celda =
-                document.createElement("td");
+            const celda = document.createElement("td");
+            const nombreColumna = obtenerNombreColumna(columna);
+            const nombreCelda = nombreColumna + fila;
 
-
-            const nombreColumna =
-                obtenerNombreColumna(columna);
-
-            const nombreCelda =
-                nombreColumna + fila;
-
-
-            celda.dataset.celda =
-                nombreCelda;
-
+            celda.dataset.celda = nombreCelda;
 
             if (datos[nombreCelda] !== undefined) {
 
@@ -133,13 +139,13 @@ function generarCuadricula() {
                     datos[nombreCelda];
             }
 
-
-
             celda.addEventListener(
                 "click",
                 seleccionarCelda
             );
 
+
+            // Doble clic para editar
 
             celda.addEventListener(
                 "dblclick",
@@ -156,9 +162,14 @@ function generarCuadricula() {
 }
 
 
+
 function seleccionarCelda(evento) {
 
     const celda = evento.currentTarget;
+    seleccionarElementos(celda);
+}
+
+function seleccionarElementos(celda) {
 
 
     document
@@ -171,16 +182,14 @@ function seleccionarCelda(evento) {
         });
 
 
+
     celda.classList.add("seleccionada");
 
 
     celdaActual = celda;
 
 
-
-    const nombre =
-        celda.dataset.celda;
-
+    const nombre = celda.dataset.celda;
 
 
     celdaSeleccionadaTexto.textContent =
@@ -197,32 +206,35 @@ function seleccionarCelda(evento) {
         barraFormula.value = "";
     }
 
-
     estado.textContent =
         `Celda ${nombre} seleccionada`;
 }
 
 
+
 function comenzarEdicion(evento) {
 
     const celda = evento.currentTarget;
+    iniciarEdicion(celda);
+}
 
-    const nombre =
-        celda.dataset.celda;
+function iniciarEdicion(celda, valorInicial = null)
+{
 
-
-    if (
-        celda.querySelector(".editor-celda")
-    ) {
+    if (editorActual) {
         return;
-    }
+    } 
 
+    const nombre = celda.dataset.celda;
 
     const valorActual =
         datos[nombre] !== undefined
             ? datos[nombre]
             : "";
 
+    const valor = valorInicial !== null
+        ? valorInicial
+        : valorActual;
 
 
     const input =
@@ -233,95 +245,110 @@ function comenzarEdicion(evento) {
     input.className =
         "editor-celda";
 
-    input.value =
-        valorActual;
-
-
+    input.value = valor;
 
 
     celda.innerHTML = "";
 
     celda.classList.add("editando");
 
-
     celda.appendChild(input);
 
+    editorActual = input;
 
     input.focus();
+    input.setSelectionRange(
+        input.value.length,
+        input.value.length
+    );
 
-    input.select();
+    let finalizado =false; 
+    
+
+    function finalizarEdicion(cancelar = false) {
+
+        if (finalizado) {
+            return;
+        }
+
+        finalizado = true;
+
+        if (cancelar) {
+
+            celda.textContent = valorAnterior;
+
+        } else {
+            guardarEdicion(celda, input.value);
+        } 
+
+        celda.classList.remove("editando");
+
+        editorActual = null;
+    }
+
 
 
     input.addEventListener(
         "keydown",
-        function(eventoTeclado) {
+        function(evento) {
 
             if (
-                eventoTeclado.key === "Enter"
-            ) {
-
-                guardarEdicion(
-                    celda,
-                    input.value
-                );
+                evento.key === "Enter" ) {
+                evento.preventDefault();
+                finalizarEdicion(false);
             }
 
 
-            if (
-                eventoTeclado.key === "Escape"
-            ) {
-
-                cancelarEdicion(
-                    celda
-                );
+            if ( evento.key === "Escape" ) {
+                evento.preventDefault();
+               finalizarEdicion(true);
             }
         }
     );
+
 
 
     input.addEventListener(
         "blur",
         function() {
 
-            guardarEdicion(
-                celda,
-                input.value
-            );
+            finalizarEdicion(false);
         }
     );
 }
 
 
-function guardarEdicion(celda, valor) {
+function guardarEdicion(celda, valorEscrito) {
 
     const nombre =
         celda.dataset.celda;
+         
+    const valor = convertirValor(valorEscrito); 
+    
+    if (valor === "") {
+        delete datos[nombre];
+        celda.textContent = ""; 
+        barraFormula.value = "";
+    }else {
 
-    datos[nombre] =
-        valor;
-
-    celda.textContent =
-        valor;
 
 
+    datos[nombre] = valor;
 
-    celda.classList.remove(
-        "editando"
-    );
+    celda.textContent = valor;
+
+    barraFormula.value = valor;
+    }
 
 
     celda.classList.add(
         "seleccionada"
     );
 
-
-    barraFormula.value =
-        valor;
-
-
+    celdaActual = celda; 
 
     estado.textContent =
-        `Valor guardado en ${nombre}`;
+        `Dato guardado en ${nombre}`;
 }
 
 
@@ -348,6 +375,55 @@ function cancelarEdicion(celda) {
 }
 
 
+document.addEventListener(
+    "keydown",
+    function(evento) {
+
+        if (!celdaActual) {
+            return;
+        }
+
+        if (editorActual) {
+            return;
+        }
+
+        if ( evento.ctrlKey ||
+             evento.altKey ||
+             evento.metaKey ) {
+            return;
+        }
+
+        if (evento.key.length === 1) {
+            evento.preventDefault();
+            iniciarEdicion(celdaActual, evento.key);
+        } 
+    }
+);
+
+document.addEventListener(
+    "keydown",
+    function(evento) {
+        if (!celdaActual || editorActual) { 
+            return;
+        }
+
+        if (evento.key === "Delete" ||
+            evento.key === "Backspace") {
+
+            evento.preventDefault();
+            const nombre = celdaActual.dataset.celda;
+
+            delete datos[nombre];
+
+            celdaActual.textContent = "";
+            barraFormula.value = "";
+
+            estado.textContent =
+                `Dato eliminado de ${nombre}`;
+        }
+    }
+);
+
 
 function guardarDesdeFormula() {
 
@@ -361,27 +437,30 @@ function guardarDesdeFormula() {
         celdaActual.dataset.celda;
 
 
-    const valor =
-        barraFormula.value;
+    const valor = convertirValor(barraFormula.value);
+    if (valor === "") {
+
+        delete datos[nombre];
+        celdaActual.textContent = ""; 
+    
+    } else {
 
 
-    datos[nombre] =
-        valor;
+    datos[nombre] = valor;
 
 
-    celdaActual.textContent =
-        valor;
+    celdaActual.textContent = valor;
+    }
 
 
     estado.textContent =
-        `Valor guardado en ${nombre}`;
+        `Dato guardado en ${nombre}`;
 }
 
 botonAceptar.addEventListener(
     "click",
     guardarDesdeFormula
 );
-
 
 barraFormula.addEventListener(
     "keydown",
@@ -393,6 +472,8 @@ barraFormula.addEventListener(
         }
     }
 );
+
+
 
 
 botonLimpiar.addEventListener(
@@ -481,6 +562,7 @@ botonNuevo.addEventListener(
 generarEncabezados();
 
 generarCuadricula();
+
 
 
 const primeraCelda =
